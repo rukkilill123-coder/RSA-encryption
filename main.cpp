@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <algorithm>
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
@@ -37,7 +38,7 @@ bool is_coprime(uint64_t a, uint64_t b)
 
 uint64_t reduced_totient(uint64_t n, uint64_t j)
 {
-  for (int i{0}; i < n; i++)
+  for (uint64_t i{0}; i < n; i++)
   {
     if (!is_coprime(i, n))
       continue;
@@ -114,15 +115,57 @@ uint64_t numeric_representation()
 }
 
 template<ConstexprString str>
-std::string encrypt(uint64_t n, uint64_t e)
+uint64_t encrypt(uint64_t n, uint64_t e)
 {
   uint64_t M = numeric_representation<str>();
   
-  return std::to_string((uint64_t)(pow(M, e)) % n);
+  return (uint64_t)(pow(M, e)) % n;
+}
+
+uint64_t decrypt(uint64_t n, uint64_t d, uint64_t msg)
+{
+  return (uint64_t)((uint64_t)(pow(msg, d)) % n);
+}
+
+std::string string_representation(uint64_t num)
+{
+  std::string binary = "";
+  std::string result = "";
+  
+  while (num > 0)
+  {
+    int bit = num % 2;
+    binary.push_back('0' + bit);
+    num /= 2;
+  }
+
+  std::reverse(binary.begin(), binary.end());
+
+  while ((binary.length() % 8) != 0)
+  {
+    binary = '0' + binary;
+  }
+  
+  for (uint64_t i{0}; i < binary.length(); i += 8)
+  {
+    std::string byte = binary.substr(i, 8);
+    
+    result.push_back((char)(std::bitset<8>(byte).to_ulong()));
+  }
+
+  return result;
 }
 
 int main()
-{
+{ 
+  std::unordered_map<char, uint64_t> keys = generate_keys(7, 11);
+  std::cout << "n: " << keys['n'] << '\n' << "e: " << keys['e'] << '\n' << "d: " << keys['d'] << '\n' << '\n';
+   
+  uint64_t encrypted = encrypt<"A">(keys['n'], keys['e']);
+  std::cout << "Encrypted message: " << encrypted << '\n' << '\n';
+  
+  uint64_t decrypted = decrypt(keys['n'], keys['d'], encrypted);
+  std::cout << "Decrypted message: " << decrypted << '\n' << "Decrypted message (string): " << string_representation(decrypted) << '\n';
   
   return 0;
 }

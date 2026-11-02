@@ -1,0 +1,2 @@
+use cmake & get bigger integral types
+don't cram everything into one file 
